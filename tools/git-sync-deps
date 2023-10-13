@@ -19,6 +19,12 @@ Environment Variables:
 
   GIT_SYNC_DEPS_QUIET: if set to non-empty string, suppress messages.
 
+  GIT_SYNC_DEPS_NO_FETCH_GN: if set to non-empty string, bin/fetch-gn
+  will not be called.
+
+  GIT_SYNC_DEPS_NO_ACTIVATE_EMSDK: if set to non-empty string,
+  bin/activate-emsdk will not be called.
+
 Git Config:
   To disable syncing of a single repository:
       cd path/to/repository
@@ -261,19 +267,21 @@ def main(argv):
   verbose = not bool(os.environ.get('GIT_SYNC_DEPS_QUIET', False))
   skip_emsdk = bool(os.environ.get('GIT_SYNC_DEPS_SKIP_EMSDK', False))
   shallow = not ('--deep' in argv)
+  fetch_gn = not bool(os.environ.get('GIT_SYNC_DEPS_NO_FETCH_GN', False))
 
   if '--help' in argv or '-h' in argv:
     usage(deps_file_path)
     return 1
 
   git_sync_deps(deps_file_path, argv, shallow, verbose)
-  subprocess.check_call(
-      [sys.executable,
-       os.path.join(os.path.dirname(deps_file_path), 'bin', 'fetch-gn')])
-  if not skip_emsdk:
+  if fetch_gn:
     subprocess.check_call(
         [sys.executable,
-         os.path.join(os.path.dirname(deps_file_path), 'bin', 'activate-emsdk')])
+        os.path.join(os.path.dirname(deps_file_path), 'bin', 'fetch-gn')])
+  if not skip_emsdk:
+     subprocess.check_call(
+          [sys.executable,
+          os.path.join(os.path.dirname(deps_file_path), 'bin', 'activate-emsdk')])
   return 0
 
 
